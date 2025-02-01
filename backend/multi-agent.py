@@ -3,62 +3,81 @@ import os
 from typing import Annotated
 
 from dotenv import load_dotenv
+from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import ToolMessage
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode, tools_condition
 from typing_extensions import TypedDict
-from tavily.search import TavilySearchResults
 
 # Load the environment variables
 load_dotenv()
 
+memory = MemorySaver()
+
 # Class definitions
 class State(TypedDict):
     messages: Annotated[list, add_messages]
+    
 
-#  Instance creations
+#  Instance creations and bindings
 graph_builder = StateGraph(State)
+
+tool = TavilySearchResults(max_results=2)
+tools = [tool]
 
 llm = ChatNVIDIA(
     model="nv-mistralai/mistral-nemo-12b-instruct",
     api_key=os.getenv("NVIDIA_API_KEY"),
 )
+llm_with_tools = llm.bind_tools(tools)
+
 
 #  Node defintions
 def chatbot(state: State):
-    return {"messages": [llm.invoke(state["messages"])]}
+    return {"messages": [llm_with_tools.invoke(state["messages"])]}
 
-tool = TavilySearchResults(max_results=2)
-tools = [tool]
-tool.invoke("What's a 'node' in LangGraph?")
-
-# Graph architecture
 graph_builder.add_node("chatbot", chatbot)
+
+tool_node = ToolNode(tools=[tool])
+
+graph_builder.add_node("tools", tool_node)
+
+graph_builder.add_conditional_edges(
+    "chatbot",
+    tools_condition,
+)
+graph_builder.add_edge("tools", "chatbot")
 graph_builder.add_edge(START, "chatbot")
-graph_builder.add_edge("chatbot", END)
-graph = graph_builder.compile()
-print(graph)
 
-def stream_graph_updates(user_input: str):
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-        for value in event.values():
-            print("Assistant:", value["messages"][-1].content)       
-            
-while True:
-    try:
-        user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
-            break
+graph = graph_builder.compile(checkpointer=memory)
 
-        stream_graph_updates(user_input)
-    except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
-        break
+config = {"configurable": {"thread_id": "1"}}
 
 
+user_input = "Hi there! My name is Will."
 
+# The config is the **second positional argument** to stream() or invoke()!
+events = graph.stream(
+    {"messages": [{"role": "user", "content": user_input}]},
+    config,
+    stream_mode="values",
+)
+for event in events:
+    event["messages"][-1].pretty_print()
+
+
+user_input = "Remember my name?"
+
+# The config is the **second positional argument** to stream() or invoke()!
+events = graph.stream(
+    {"messages": [{"role": "user", "content": user_input}]},
+    config,
+    stream_mode="values",
+)
+for event in events:
+    event["messages"][-1].pretty_print()
+    
+    
