@@ -17,7 +17,7 @@ def generate_response(input: ClientRequest):
         content = data.get("content", "")
 
         def stream():
-            chunk_size = 1024
+            chunk_size = 25
             for i in range(0, len(content), chunk_size):
                 yield content[i:i+chunk_size]
                 time.sleep(0.05)

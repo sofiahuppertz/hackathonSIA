@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import List
 from typing_extensions import TypedDict
 from .web_search import section_builder_graph
-from .prompts import presentation_generale_prompt, projets_verts_prompt
+from .prompts import presentation_generale_prompt, projets_verts_prompt, tableau_recap_prompt, interlocuteurs_prompt
 
 load_dotenv()
 
@@ -34,6 +34,8 @@ class State(TypedDict):
     collectivite: str
     presentation_generale: SectionOutputState
     projets_verts: SectionOutputState
+    recapitulative: SectionOutputState
+    interlocuteurs: SectionOutputState
     images: List[str]
     web_sources: List[str]
     fiche_client: str
@@ -43,6 +45,36 @@ class SearchQuery(BaseModel):
         None, description="Query for web search."
     )
     
+async def recapitulative(state: State): 
+    collectivite = state["collectivite"]
+
+    queries = [
+        {"search_query": f"{collectivite} encours total budget principal \"euros par habitant\" dette municipal rapport financier 2025 filetype:pdf"},
+        {"search_query": f"{collectivite} \"capacité de désendettement\" dette municipal analyse financière indicateur 2025 filetype:pdf"},
+        {"search_query": f"{collectivite} \"taux d'endettement\" finances municipales indicateurs dette analyse 2025"},
+        {"search_query": f"{collectivite} \"durée apparente de la dette\" analyse financière municipal rapport 2025 filetype:pdf"},
+        {"search_query": f"{collectivite} métropole finances municipales comparaison indicateurs encours budget capacité désendettement taux endettement durée dette 2025 filetype:pdf"}
+    ]
+    section_data = {
+        "content": ""
+    }
+    section = Section(**section_data)
+    search_query_objs = [SearchQuery(**q) for q in queries]
+    prompt = tableau_recap_prompt.format(collectivite=collectivite)
+    initial_state = {
+        "number_of_queries": len(queries),
+        "section": section,
+        "writer_prompt": prompt,
+        "search_queries": search_query_objs,
+        "source_str": "",
+        "report_sections_from_research": "",
+        "images": [],
+        "web_sources": [],
+        "completed_sections": [],
+    }
+    result = await section_builder_graph.ainvoke(initial_state)
+    return { "recapitulative": result }
+
 async def presentation_generale(state: State): 
     collectivite = state["collectivite"]
     queries = [
@@ -71,7 +103,6 @@ async def presentation_generale(state: State):
         "completed_sections": [],
     }
     result = await section_builder_graph.ainvoke(initial_state)
-    # print(f"DEBUG: presentation_generale result: {result}")
     return { "presentation_generale": result }
 
 async def projets_verts(state: State):
@@ -104,15 +135,46 @@ async def projets_verts(state: State):
     result = await section_builder_graph.ainvoke(initial_state)
     return { "projets_verts": result }
 
+async def interlocuteurs(state: State):
+    collectivite = state["collectivite"]
+    queries = [
+        {"search_query": f"Maire de la métropole de {collectivite} Infos: Nom, Prénom, Date et Lieu de Naissance, Formation, Carrière Chronologique et Activités en cours"},
+        {"search_query": f"Directeur Financier de {collectivite} - Profil Complet: Nom, Prénom, Date et Lieu de Naissance, Formation, Parcours Professionnel et Autres Activités"},
+        {"search_query": f"Directeur Général des Services de {collectivite} - Détails Biographiques: Nom, Prénom, Date et Lieu de Naissance, Formation, Carrière Chronologique, Activités"},
+        {"search_query": f"Biographie détaillée des dirigeants de {collectivite}: Maire, Directeur Financier, Directeur Général des Services - Informations personnelles, formation et parcours professionnel"},
+        {"search_query": f"Profil complet des responsables de {collectivite} : Maire, Directeur Financier, Directeur Général des Services - Données sur naissance, formation, carrière et activités actuelles"},
+    ]
+    section_data = {
+        "content": ""
+    }
+    section = Section(**section_data)
+    search_query_objs = [SearchQuery(**q) for q in queries]
+    prompt = interlocuteurs_prompt.format(collectivite=collectivite)
+    initial_state = {
+        "number_of_queries": len(queries),
+        "section": section,
+        "writer_prompt": prompt,
+        "search_queries": search_query_objs,
+        "source_str": "",
+        "report_sections_from_research": "",
+        "images": [],
+        "web_sources": [],
+        "completed_sections": [],
+    }
+    result = await section_builder_graph.ainvoke(initial_state)
+    return { "interlocuteur": result }
+
 def aggregator(state: State):
-    combined = f"Fiche Client pour {state['collectivite']}:\n\n"
-    combined += "1. Présentation Générale:\n" + state["presentation_generale"]["completed_sections"] + "\n\n"
-    combined += "5. Projets Verts:\n" + state["projets_verts"]["completed_sections"] + "\n\n"
+    combined = f"# Fiche Client pour {state['collectivite']}:\n\n"
+    combined += "## 1. Récapitulative:\n" + state["recapitulative"]["completed_sections"] + "\n\n"
+    combined += "## 2. Présentation Générale:\n" + state["presentation_generale"]["completed_sections"] + "\n\n"
+    combined += "## 3. Projets Verts:\n" + state["projets_verts"]["completed_sections"] + "\n\n"
+    combined += "## 4. Interlocuteurs:\n" + state["interlocuteurs"]["completed_sections"] + "\n\n"
     
     all_images = list(state.get("images", []))
     all_web_sources = list(state.get("web_sources", []))
     
-    for section in [state["presentation_generale"], state["projets_verts"]]:
+    for section in [state["recapitulative"], state["presentation_generale"], state["projets_verts"], state["interlocuteurs"]]:
         all_images.extend(section.get("images", []))
         all_web_sources.extend(section.get("web_sources", []))
     
@@ -127,11 +189,12 @@ parallel_builder = StateGraph(State)
 
 # Define a list of tuples with node names and their corresponding functions
 sections = [
-    ("call_section_1", presentation_generale),
-    # ("call_section_2", interlocuteurs),
+    ("call_section_1", recapitulative),
+    ("call_section_2", presentation_generale),
+    ("call_section_3", projets_verts),
+    ("call_section_4", interlocuteurs),
     # ("call_section_3", budget_primitif_2024),
     # ("call_section_4", situation_financiere),
-    ("call_section_5", projets_verts),
     # ("call_section_6", projets_sociaux),
     # ("call_section_7", comparatif_collectivites),
 ]
