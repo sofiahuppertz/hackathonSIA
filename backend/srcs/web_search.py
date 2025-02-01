@@ -55,7 +55,7 @@ class SectionState(TypedDict):
 class SectionOutputState(TypedDict):
     images: list[str]
     web_sources: list[str]
-    completed_sections: list[Section]
+    completed_sections: str
 
 def deduplicate_and_format_sources(search_response, max_tokens_per_source, include_raw_content=False):
     """
@@ -197,9 +197,8 @@ def write_section(state: SectionState):
     section_content = llm.invoke(
         [SystemMessage(content=quality_check_prompt)]+[HumanMessage(content=formatted_writer_prompt)]
     )
-    section.content = section_content.content
     results_data = {
-        "completed_sections": [section],
+        "completed_sections": section_content.content,
         "images": state["images"],
         "web_sources": state["web_sources"],
     }

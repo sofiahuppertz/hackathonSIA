@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import List
 from typing_extensions import TypedDict
 from .web_search import section_builder_graph
-from .prompts import presentation_generale_prompt
+from .prompts import presentation_generale_prompt, projets_verts_prompt
 
 load_dotenv()
 
@@ -18,32 +18,31 @@ llm = ChatNVIDIA(
     api_key=os.getenv("NVIDIA_API_KEY"),
 )
 
-# Graph state
-class State(TypedDict):
-    collectivite: str
-    presentation_generale: str
-    # interlocuteurs: str
-    # budget_primitif_2024: str
-    # situation_financiere: str
-    # projets_verts: str
-    # projets_sociaux: str
-    # comparatif_collectivites: str
-    images: List[str]
-    web_sources: List[str]
-    fiche_client: str
-    
 
 class Section(BaseModel):
     content:str = Field(
         description="The content of the section."
-    ) 
+    )
+    
+class SectionOutputState(TypedDict):
+    images: list[str]
+    web_sources: list[str]
+    completed_section: str
+
+# Graph state
+class State(TypedDict):
+    collectivite: str
+    presentation_generale: SectionOutputState
+    projets_verts: SectionOutputState
+    images: List[str]
+    web_sources: List[str]
+    fiche_client: str
 
 class SearchQuery(BaseModel):
     search_query: str = Field(
         None, description="Query for web search."
     )
     
-
 async def presentation_generale(state: State): 
     collectivite = state["collectivite"]
     queries = [
@@ -59,7 +58,6 @@ async def presentation_generale(state: State):
     }
     section = Section(**section_data)
     search_query_objs = [SearchQuery(**q) for q in queries]
-    search_query_objs = [SearchQuery(**q) for q in queries]
     prompt = presentation_generale_prompt.format(collectivite=collectivite)
     initial_state = {
         "number_of_queries": len(queries),
@@ -73,229 +71,55 @@ async def presentation_generale(state: State):
         "completed_sections": [],
     }
     result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {
-            "presentation_generale": completed_section.content,
-            "images": result.get("images", []),
-            "web_sources": result.get("web_sources", []),
-        }
-
-async def interlocuteurs(state: State):
-    prompt = ""
-        
-    collectivite = state["collectivite"]
-    queries = [
-        {"search_query": f"Liste des dirigeants de {collectivite}"},
-        {"search_query": f"Parcours et formation des élus de {collectivite}"},
-        {"search_query": f"Fonctions et responsabilités des responsables de {collectivite}"}
-    ]
-    section_data = {
-        "name": "interlocuteurs",
-        "description": "Liste détaillée des interlocuteurs de la collectivité",
-        "content": ""
-    }
-    section = Section(**section_data)
-    search_query_objs = [SearchQuery(**q) for q in queries]
-    initial_state = {
-        "number_of_queries": len(queries),
-        "writer_prompt": prompt,
-        "search_queries": search_query_objs,
-        "source_str": "",
-        "report_sections_from_research": "",
-        "completed_sections": [],
-    }
-    result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {"interlocuteurs": completed_section.content}
-
-
-async def budget_primitif_2024(state: State):
-    collectivite = state["collectivite"]
-    queries = [
-        {"search_query": f"Montant total du budget adopté pour {collectivite}"},
-        {"search_query": f"Répartition entre dépenses de fonctionnement et d’investissement pour {collectivite}"},
-        {"search_query": f"Axes de financement et priorités budgétaires de {collectivite}"}
-    ]
-    section_data = {
-        "name": "budget primitif 2024",
-        "description": "Rapport sur le budget primitif 2024 de la collectivité",
-        "queries": queries,
-        "content": ""
-    }
-    section = Section(**section_data)
-    search_query_objs = [SearchQuery(**q) for q in queries]
-    initial_state = {
-        "number_of_queries": len(queries),
-        "section": section,
-        "search_queries": search_query_objs,
-        "source_str": "",
-        "report_sections_from_research": "",
-        "completed_sections": []
-    }
-    result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {"budget_primitif_2024": completed_section.content}
-
-
-async def situation_financiere(state: State):
-    collectivite = state["collectivite"]
-    queries = [
-        {"search_query": f"Niveaux d'endettement de {collectivite}"},
-        {"search_query": f"Ratios financiers et épargne brute de {collectivite}"},
-        {"search_query": f"Comparaison de la situation financière de {collectivite} avec la moyenne nationale ou régionale"}
-    ]
-    section_data = {
-        "name": "situation financiere",
-        "description": "Analyse de la situation financière (Exercice 2023) de la collectivité",
-        "queries": queries,
-        "content": ""
-    }
-    section = Section(**section_data)
-    search_query_objs = [SearchQuery(**q) for q in queries]
-    initial_state = {
-        "number_of_queries": len(queries),
-        "section": section,
-        "search_queries": search_query_objs,
-        "source_str": "",
-        "report_sections_from_research": "",
-        "completed_sections": []
-    }
-    result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {"situation_financiere": completed_section.content}
-
+    # print(f"DEBUG: presentation_generale result: {result}")
+    return { "presentation_generale": result }
 
 async def projets_verts(state: State):
     collectivite = state["collectivite"]
     queries = [
-        {"search_query": f"{collectivite} transition écologique site officiel"},
-        {"search_query": f"{collectivite} projets environnementaux 2024"},
-        {"search_query": f"{collectivite} budget écologie 2024 filetype:pdf"},
-        {"search_query": f"{collectivite} politiques publiques environnement"},
-        {"search_query": f"{collectivite} programme développement durable"},
-        
-        {"search_query": f"{collectivite} énergies renouvelables projets"},
-        {"search_query": f"{collectivite} panneaux solaires installations"},
-        {"search_query": f"{collectivite} politique énergétique municipale"},
-        {"search_query": f"{collectivite} transition énergétique budget"},
-        {"search_query": f"{collectivite} solaire photovoltaïque ville"},
-        
-        {"search_query": f"{collectivite} transports propres et mobilité durable"},
-        {"search_query": f"{collectivite} infrastructures cyclables 2024"},
-        {"search_query": f"{collectivite} pistes cyclables projet filetype:pdf"},
-        {"search_query": f"{collectivite} plan mobilité durable"},
-        {"search_query": f"{collectivite} véhicules électriques municipaux"},
-        
-        {"search_query": f"{collectivite} assainissement projets"},
-        {"search_query": f"{collectivite} gestion des eaux pluviales"},
-        {"search_query": f"{collectivite} réduction des rejets d’eaux usées"},
-        {"search_query": f"{collectivite} bassins d’orages investissement"},
-        {"search_query": f"{collectivite} pollution des eaux plan d’action"},
-        
-        {"search_query": f"{collectivite} rénovation énergétique écoles"},
-        {"search_query": f"{collectivite} bâtiments publics rénovation énergétique"},
-        {"search_query": f"{collectivite} plan efficacité énergétique 2024"},
-        {"search_query": f"{collectivite} réduction consommation énergétique"},
-        {"search_query": f"{collectivite} transition énergétique bâtiments municipaux"},
-        
-        {"search_query": f"{collectivite} budget municipal écologie 2024 filetype:pdf"},
-        {"search_query": f"{collectivite} rapport développement durable filetype:pdf"},
-        {"search_query": f"{collectivite} plan climat énergie territorial"},
-        {"search_query": f"{collectivite} rapport investissement écologique"},
-        {"search_query": f"{collectivite} dossier subventions écologiques"}
+        {"search_query": f"{collectivite} transition écologique site officiel projets environnementaux 2024 budget écologie 2024 filetype:pdf politiques publiques environnement programme développement durable"},
+        {"search_query": f"{collectivite} énergies renouvelables projets panneaux solaires installations politique énergétique municipale transition énergétique budget solaire photovoltaïque ville"},
+        {"search_query": f"{collectivite} transports propres mobilité durable infrastructures cyclables 2024 pistes cyclables projet filetype:pdf plan mobilité durable véhicules électriques municipaux"},
+        {"search_query": f"{collectivite} assainissement projets gestion des eaux pluviales réduction rejets eaux usées bassins d’orages investissement pollution eaux plan d’action"},
+        {"search_query": f"{collectivite} rénovation énergétique écoles bâtiments publics plan efficacité énergétique 2024 réduction consommation énergétique transition énergétique bâtiments municipaux budget municipal écologie 2024 filetype:pdf rapport développement durable filetype:pdf plan climat énergie territorial rapport investissement écologique dossier subventions écologiques"}
     ]
 
     section_data = {
-        "name": "projets verts",
-        "description": "Rapport sur les projets verts de la collectivité",
-        "queries": queries,
         "content": ""
     }
     section = Section(**section_data)
     search_query_objs = [SearchQuery(**q) for q in queries]
+    prompt = projets_verts_prompt.format(collectivite=collectivite)
     initial_state = {
         "number_of_queries": len(queries),
         "section": section,
+        "writer_prompt": prompt,
         "search_queries": search_query_objs,
         "source_str": "",
         "report_sections_from_research": "",
-        "completed_sections": []
+        "images": [],
+        "web_sources": [],
+        "completed_sections": [],
     }
     result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {"projets_verts": completed_section.content}
-
-
-async def projets_sociaux(state: State):
-    collectivite = state["collectivite"]
-    queries = [
-        {"search_query": f"Équipements éducatifs à {collectivite}"},
-        {"search_query": f"Infrastructures sportives et culturelles de {collectivite}"},
-        {"search_query": f"Politiques d’inclusion sociale et renouvellement urbain à {collectivite}"}
-    ]
-    section_data = {
-        "name": "projets sociaux",
-        "description": "Rapport sur les projets sociaux de la collectivité",
-        "queries": queries,
-        "content": ""
-    }
-    section = Section(**section_data)
-    search_query_objs = [SearchQuery(**q) for q in queries]
-    initial_state = {
-        "number_of_queries": len(queries),
-        "section": section,
-        "search_queries": search_query_objs,
-        "source_str": "",
-        "report_sections_from_research": "",
-        "completed_sections": []
-    }
-    result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {"projets_sociaux": completed_section.content}
-
-
-async def comparatif_collectivites(state: State):
-    collectivite = state["collectivite"]
-    queries = [
-        {"search_query": f"Indicateurs financiers de {collectivite}"},
-        {"search_query": f"Comparaison budgétaire de {collectivite} avec d'autres collectivités"},
-        {"search_query": f"Initiatives de transition écologique et sociale à {collectivite}"}
-    ]
-    section_data = {
-        "name": "comparatif collectivites",
-        "description": "Comparaison du client avec des collectivités comparables",
-        "queries": queries,
-        "content": ""
-    }
-    section = Section(**section_data)
-    search_query_objs = [SearchQuery(**q) for q in queries]
-    initial_state = {
-        "number_of_queries": len(queries),
-        "section": section,
-        "search_queries": search_query_objs,
-        "source_str": "",
-        "report_sections_from_research": "",
-        "completed_sections": []
-    }
-    result = await section_builder_graph.ainvoke(initial_state)
-    completed_section = result["completed_sections"][0]
-    return {"comparatif_collectivites": completed_section.content}
-
+    return { "projets_verts": result }
 
 def aggregator(state: State):
-    """Combine all sections into a single client file output"""
     combined = f"Fiche Client pour {state['collectivite']}:\n\n"
-    combined += "1. Présentation Générale:\n" + state['presentation_generale'] + "\n\n"
-    # combined += "2. Interlocuteurs:\n" + state['interlocuteurs'] + "\n\n"
-    # combined += "3. Budget Primitif 2024:\n" + state['budget_primitif_2024'] + "\n\n"
-    # combined += "4. Situation Financière (Exercice 2023):\n" + state['situation_financiere'] + "\n\n"
-    # combined += "5. Projets Verts:\n" + state['projets_verts'] + "\n\n"
-    # combined += "6. Projets Sociaux:\n" + state['projets_sociaux'] + "\n\n"
-    # combined += "7. Comparatif avec des Collectivités Comparables:\n" + state['comparatif_collectivites']
+    combined += "1. Présentation Générale:\n" + state["presentation_generale"]["completed_sections"] + "\n\n"
+    combined += "5. Projets Verts:\n" + state["projets_verts"]["completed_sections"] + "\n\n"
+    
+    all_images = list(state.get("images", []))
+    all_web_sources = list(state.get("web_sources", []))
+    
+    for section in [state["presentation_generale"], state["projets_verts"]]:
+        all_images.extend(section.get("images", []))
+        all_web_sources.extend(section.get("web_sources", []))
+    
     return {
         "fiche_client": combined,
-        "images": state.get("images", []),
-        "web_sources": state.get("web_sources", []),
+        "images": all_images,
+        "web_sources": all_web_sources,
     }
     
 # Build workflow
@@ -307,7 +131,7 @@ sections = [
     # ("call_section_2", interlocuteurs),
     # ("call_section_3", budget_primitif_2024),
     # ("call_section_4", situation_financiere),
-    # ("call_section_5", projets_verts),
+    ("call_section_5", projets_verts),
     # ("call_section_6", projets_sociaux),
     # ("call_section_7", comparatif_collectivites),
 ]
@@ -322,14 +146,12 @@ for name, func in sections:
 parallel_builder.add_node("aggregator", aggregator)
 parallel_builder.add_edge("aggregator", END)
 
-
 # Compile the workflow
 parallel_workflow = parallel_builder.compile()
 
 # Invoke
 async def run_workflow(collectivite: str ) -> State:
     state = await parallel_workflow.ainvoke({"collectivite": collectivite})
-    print(state)
     return state
 
 if __name__ == "__main__":

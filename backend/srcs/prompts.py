@@ -18,7 +18,32 @@ presentation_generale_prompt = (
     "Veuillez intégrer ces informations de manière pertinente dans la rédaction de votre fiche."
 )
 
-tableau_projets_prompt = (
+tableau_finances_prompt = (
+    "Vous devez extraire et organiser les informations financières les plus récentes pour la collectivité locale \"{state['collectivite']}\" et sa métropole en deux tableaux distincts au format Markdown.\n\n"
+    "Pour chacun des tableaux, respectez le format suivant :\n\n"
+    "- Colonnes :\n"
+    "  1. Vision récapitulative : le libellé de l'indicateur.\n"
+    "  2. Client : la valeur observée pour la collectivité locale (ou la métropole), accompagnée de l’année de référence et d’un lien vers la source.\n"
+    "  3. Moyenne nationale : la valeur de référence nationale, accompagnée de l’année de référence et d’un lien vers la source.\n\n"
+    "- Lignes (indicateurs à présenter) :\n"
+    "  1. Encours total budget principal (en euros et en euros par habitant)\n"
+    "     - Exemple : \"110 M€ soit 679 €/hab\"\n"
+    "  2. Capacité de désendettement (en années)\n"
+    "     - Exemple : \"3,4 ans\"\n"
+    "  3. Taux d’endettement (en %)\n"
+    "     - Exemple : \"51 %\"\n"
+    "  4. Durée apparente de la dette (en années)\n"
+    "     - Exemple : \"10,1 ans\"\n\n"
+    "Instructions supplémentaires :\n\n"
+    "- Pour chaque indicateur, indiquez la valeur, l’année de référence et fournissez le lien vers la source.\n"
+    "- Utilisez les documents ci-dessous comme sources d’information :\n\n"
+    "  ------------------------------------------------------------\n"
+    "  {{context}}\n"
+    "  ------------------------------------------------------------\n\n"
+    "Organisez et structurez les informations de manière claire et cohérente, en respectant scrupuleusement le format demandé."
+)
+
+projets_verts_prompt = (
     "Vous devez transformer les informations relatives aux projets de la collectivité de {collectivite} "
     "en un tableau structuré selon le format suivant :\n"
     " 1. Thème\n"
