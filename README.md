@@ -1,5 +1,17 @@
 # hackathonSIA
 
+Backend Setup
+⚠️ Add API keys to .env file inside backend/
+
+pip install -r backend/requirements.txt
+
+uvicorn app:app --reload
+
+Frontend Setup
+pip install -r frontend/requirements.txt
+
+streamlit run main.py
+
 # Fiche client
 Voici les titres des sections avec des lignes directrices pour rechercher les mêmes informations auprès d’autres collectivités :
 
