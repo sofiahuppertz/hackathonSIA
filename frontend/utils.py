@@ -27,7 +27,7 @@ def mock_generate_response(input: ClientRequest):
     ]
 
     def stream():
-        chunk_size = 25
+        chunk_size = 2000
         for i in range(0, len(content), chunk_size):
             yield content[i:i+chunk_size]
             time.sleep(0.05)

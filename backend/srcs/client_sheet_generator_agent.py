@@ -8,8 +8,8 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 from typing import List
 from typing_extensions import TypedDict
-from web_search import section_builder_graph
-from prompts import presentation_generale_prompt, projets_verts_prompt, tableau_recap_prompt, interlocuteurs_prompt
+from .web_search import section_builder_graph
+from .prompts import presentation_generale_prompt, projets_verts_prompt, tableau_recap_prompt, interlocuteurs_prompt
 
 load_dotenv()
 
