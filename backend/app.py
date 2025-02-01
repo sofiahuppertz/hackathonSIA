@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from backend.fiche_client_agent import run_workflow
 
 load_dotenv()
 
@@ -21,22 +22,16 @@ app.add_middleware(
 
 class Collectivity(BaseModel):
   name: str
-  
-class 
 
   
-@app.post("/chat")
-async def chat_endpoint(input: Collectivity):
+@app.post("/gen_fiche_client", response_model=Dict[str, str])
+async def generate_fiche_client(input: Collectivity):
     try:
-        talk.messages.append(
-            {"role": input.role, "content": input.message}
-        )
-        return StreamingResponse(stream_response(), media_type="text/plain")
+        # Pass the collectivity name from the request to run_workflow.
+        state = await run_workflow({"collectivite": input.name})
+        return {"fiche_client": state.get("fiche_client")}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=str(e)
-        )
+        raise HTTPException(status_code=500, detail=str(e))
            
 if __name__ == "__main__":
     import uvicorn
