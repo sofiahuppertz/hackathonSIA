@@ -8,7 +8,8 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 from typing import List
 from typing_extensions import TypedDict
-from web_search import section_builder_graph
+from .web_search import section_builder_graph
+from .prompts import presentation_generale_prompt
 
 load_dotenv()
 
@@ -21,67 +22,67 @@ llm = ChatNVIDIA(
 class State(TypedDict):
     collectivite: str
     presentation_generale: str
-    interlocuteurs: str
-    budget_primitif_2024: str
-    situation_financiere: str
-    projets_verts: str
-    projets_sociaux: str
-    comparatif_collectivites: str
+    # interlocuteurs: str
+    # budget_primitif_2024: str
+    # situation_financiere: str
+    # projets_verts: str
+    # projets_sociaux: str
+    # comparatif_collectivites: str
+    images: List[str]
+    web_sources: List[str]
     fiche_client: str
     
+
+class Section(BaseModel):
+    content:str = Field(
+        description="The content of the section."
+    ) 
+
 class SearchQuery(BaseModel):
     search_query: str = Field(
         None, description="Query for web search."
     )
     
-class Section(BaseModel):
-    name: str = Field(
-        description="Name for this section of the report.",
-    )
-    description: str = Field(
-        description="Brief overview of the main topics and concepts to be covered in this section.",
-    )
-    queries: List[SearchQuery] = Field(
-        description="list of search queries for this section.",
-    )
-    content:str = Field(
-        description="The content of the section."
-    ) 
 
-class Sections(BaseModel):
-    sections: List[Section] = Field(
-        description="Sections of the report.",
-    )
-    
-
-async def presentation_generale(state: State):
+async def presentation_generale(state: State): 
     collectivite = state["collectivite"]
     queries = [
-        {"search_query": f"Informations démographiques de {collectivite}"},
-        {"search_query": f"Historique des réorganisations de {collectivite} des 30 dernières années"},
-        {"search_query": f"Caractéristiques économiques et administratives de {collectivite}"}
+        {"search_query": f"Statistiques officielles de {collectivite} : population de la Métropole, superficie et densité de population en 2024"},
+        {"search_query": f"Événements clés et réformes de {collectivite} pendant les 30 dernières années"},
+        {"search_query": f"Événements clés et réformes de {collectivite} pendant les 60 dernières années"},
+        {"search_query": f"Compétences et missions principales de {collectivite} : responsabilités, attributions et organisation administrative."},
+        {"search_query": f"Secteurs économiques dominants de {collectivite}"},
+        {"search_query": f"Patrimoine culturel de {collectivite}"},
     ]
     section_data = {
-        "name": "presentation generale",
-        "description": "Analyse de la présentation générale de la collectivité",
-        "queries": queries,
         "content": ""
     }
     section = Section(**section_data)
     search_query_objs = [SearchQuery(**q) for q in queries]
+    search_query_objs = [SearchQuery(**q) for q in queries]
+    prompt = presentation_generale_prompt.format(collectivite=collectivite)
     initial_state = {
         "number_of_queries": len(queries),
         "section": section,
+        "writer_prompt": prompt,
         "search_queries": search_query_objs,
         "source_str": "",
         "report_sections_from_research": "",
-        "completed_sections": []
+        "images": [],
+        "web_sources": [],
+        "completed_sections": [],
     }
     result = await section_builder_graph.ainvoke(initial_state)
     completed_section = result["completed_sections"][0]
-    return {"presentation_generale": completed_section.content}
+    return {
+            "presentation_generale": completed_section.content,
+            "images": result.get("images", []),
+            "web_sources": result.get("web_sources", []),
+        }
 
 async def interlocuteurs(state: State):
+    prompt = ""
+        
     collectivite = state["collectivite"]
     queries = [
         {"search_query": f"Liste des dirigeants de {collectivite}"},
@@ -91,18 +92,17 @@ async def interlocuteurs(state: State):
     section_data = {
         "name": "interlocuteurs",
         "description": "Liste détaillée des interlocuteurs de la collectivité",
-        "queries": queries,
         "content": ""
     }
     section = Section(**section_data)
     search_query_objs = [SearchQuery(**q) for q in queries]
     initial_state = {
         "number_of_queries": len(queries),
-        "section": section,
+        "writer_prompt": prompt,
         "search_queries": search_query_objs,
         "source_str": "",
         "report_sections_from_research": "",
-        "completed_sections": []
+        "completed_sections": [],
     }
     result = await section_builder_graph.ainvoke(initial_state)
     completed_section = result["completed_sections"][0]
@@ -168,10 +168,43 @@ async def situation_financiere(state: State):
 async def projets_verts(state: State):
     collectivite = state["collectivite"]
     queries = [
-        {"search_query": f"Investissements en énergies renouvelables à {collectivite}"},
-        {"search_query": f"Initiatives de mobilité durable et infrastructures de {collectivite}"},
-        {"search_query": f"Actions en urbanisme durable et efficacité énergétique à {collectivite}"}
+        {"search_query": f"{collectivite} transition écologique site officiel"},
+        {"search_query": f"{collectivite} projets environnementaux 2024"},
+        {"search_query": f"{collectivite} budget écologie 2024 filetype:pdf"},
+        {"search_query": f"{collectivite} politiques publiques environnement"},
+        {"search_query": f"{collectivite} programme développement durable"},
+        
+        {"search_query": f"{collectivite} énergies renouvelables projets"},
+        {"search_query": f"{collectivite} panneaux solaires installations"},
+        {"search_query": f"{collectivite} politique énergétique municipale"},
+        {"search_query": f"{collectivite} transition énergétique budget"},
+        {"search_query": f"{collectivite} solaire photovoltaïque ville"},
+        
+        {"search_query": f"{collectivite} transports propres et mobilité durable"},
+        {"search_query": f"{collectivite} infrastructures cyclables 2024"},
+        {"search_query": f"{collectivite} pistes cyclables projet filetype:pdf"},
+        {"search_query": f"{collectivite} plan mobilité durable"},
+        {"search_query": f"{collectivite} véhicules électriques municipaux"},
+        
+        {"search_query": f"{collectivite} assainissement projets"},
+        {"search_query": f"{collectivite} gestion des eaux pluviales"},
+        {"search_query": f"{collectivite} réduction des rejets d’eaux usées"},
+        {"search_query": f"{collectivite} bassins d’orages investissement"},
+        {"search_query": f"{collectivite} pollution des eaux plan d’action"},
+        
+        {"search_query": f"{collectivite} rénovation énergétique écoles"},
+        {"search_query": f"{collectivite} bâtiments publics rénovation énergétique"},
+        {"search_query": f"{collectivite} plan efficacité énergétique 2024"},
+        {"search_query": f"{collectivite} réduction consommation énergétique"},
+        {"search_query": f"{collectivite} transition énergétique bâtiments municipaux"},
+        
+        {"search_query": f"{collectivite} budget municipal écologie 2024 filetype:pdf"},
+        {"search_query": f"{collectivite} rapport développement durable filetype:pdf"},
+        {"search_query": f"{collectivite} plan climat énergie territorial"},
+        {"search_query": f"{collectivite} rapport investissement écologique"},
+        {"search_query": f"{collectivite} dossier subventions écologiques"}
     ]
+
     section_data = {
         "name": "projets verts",
         "description": "Rapport sur les projets verts de la collectivité",
@@ -253,28 +286,30 @@ def aggregator(state: State):
     """Combine all sections into a single client file output"""
     combined = f"Fiche Client pour {state['collectivite']}:\n\n"
     combined += "1. Présentation Générale:\n" + state['presentation_generale'] + "\n\n"
-    combined += "2. Interlocuteurs:\n" + state['interlocuteurs'] + "\n\n"
-    combined += "3. Budget Primitif 2024:\n" + state['budget_primitif_2024'] + "\n\n"
-    combined += "4. Situation Financière (Exercice 2023):\n" + state['situation_financiere'] + "\n\n"
-    combined += "5. Projets Verts:\n" + state['projets_verts'] + "\n\n"
-    combined += "6. Projets Sociaux:\n" + state['projets_sociaux'] + "\n\n"
-    combined += "7. Comparatif avec des Collectivités Comparables:\n" + state['comparatif_collectivites']
-    return {"fiche_client": combined}
-
-
+    # combined += "2. Interlocuteurs:\n" + state['interlocuteurs'] + "\n\n"
+    # combined += "3. Budget Primitif 2024:\n" + state['budget_primitif_2024'] + "\n\n"
+    # combined += "4. Situation Financière (Exercice 2023):\n" + state['situation_financiere'] + "\n\n"
+    # combined += "5. Projets Verts:\n" + state['projets_verts'] + "\n\n"
+    # combined += "6. Projets Sociaux:\n" + state['projets_sociaux'] + "\n\n"
+    # combined += "7. Comparatif avec des Collectivités Comparables:\n" + state['comparatif_collectivites']
+    return {
+        "fiche_client": combined,
+        "images": state.get("images", []),
+        "web_sources": state.get("web_sources", []),
+    }
+    
 # Build workflow
 parallel_builder = StateGraph(State)
-
 
 # Define a list of tuples with node names and their corresponding functions
 sections = [
     ("call_section_1", presentation_generale),
-    ("call_section_2", interlocuteurs),
-    ("call_section_3", budget_primitif_2024),
-    ("call_section_4", situation_financiere),
-    ("call_section_5", projets_verts),
-    ("call_section_6", projets_sociaux),
-    ("call_section_7", comparatif_collectivites),
+    # ("call_section_2", interlocuteurs),
+    # ("call_section_3", budget_primitif_2024),
+    # ("call_section_4", situation_financiere),
+    # ("call_section_5", projets_verts),
+    # ("call_section_6", projets_sociaux),
+    # ("call_section_7", comparatif_collectivites),
 ]
 
 # Loop to add nodes and connect them from START and to aggregator
@@ -292,9 +327,12 @@ parallel_builder.add_edge("aggregator", END)
 parallel_workflow = parallel_builder.compile()
 
 # Invoke
-async def run_workflow():
-    state = await parallel_workflow.ainvoke({"collectivite": "Nice"})
-    print(state["fiche_client"])
+async def run_workflow(collectivite: str ) -> State:
+    state = await parallel_workflow.ainvoke({"collectivite": collectivite})
+    print(state)
+    return state
 
-asyncio.run(run_workflow())
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(run_workflow("Nice"))
 

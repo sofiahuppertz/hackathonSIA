@@ -1,38 +1,24 @@
 import streamlit as st
-import uuid
-
-from classes import ChatMessage, UserInput
-from utils import display_chat_message, generate_response, validate_input, choose_random_emoji
-
+from schemas import ClientRequest
+from utils import generate_response, validate_input
 
 st.set_page_config(
-    page_title="Motibot - Trainer Specialist 🏋🏼‍♂️🏃🏼‍♀️",
-    page_icon="💪",
+    page_title="CIA Partners -  blablabla",
+    page_icon="🌃",
 )
 
-st.title("Motibot - Trainer Specialist 🏋🏼‍♂️🏃🏼‍♀️")
+st.title("CIA Partners")
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "talk_id" not in st.session_state:
-    st.session_state.talk_id = str(uuid.uuid4())
-
-display_chat_message(st.session_state.messages)
-
-if prompt := st.chat_input("Hey Motibot, can you help me with my fitness plan?"):
+if prompt := st.chat_input("Rentrez votre collectivité (exemple : Dijon)"):
 
     if not validate_input(prompt):
-        st.stop()
+        st.stop()  
     
-    user_message = [ChatMessage(role="user", avatar="🧑‍💻", content=prompt)]
-    display_chat_message(user_message)
-    st.session_state.messages.append(user_message[0])
+    with st.chat_message("user",  avatar="🧑‍💻"):
+            st.markdown(prompt)
     
-    input = UserInput(message=prompt, talk_id=st.session_state.talk_id)
+    input = ClientRequest(region=prompt)
 
-    avatar = choose_random_emoji()
-    with st.chat_message("assistant", avatar=avatar):
+    with st.chat_message("assistant", avatar="🤖"):
         response = st.write_stream(generate_response(input))
         
-    st.session_state.messages.append(ChatMessage(role="assistant", avatar=avatar, content=response))
