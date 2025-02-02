@@ -1,1 +1,0 @@
-interlocuteur_prompt = ""

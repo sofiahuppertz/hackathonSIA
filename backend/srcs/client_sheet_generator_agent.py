@@ -2,13 +2,12 @@ import os
 import asyncio
 from dotenv import load_dotenv
 from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_core.messages import ToolMessage
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 from typing import List
 from typing_extensions import TypedDict
-from .web_search import section_builder_graph
+from .web_search_agent import section_builder_graph
 from .prompts import presentation_generale_prompt, projets_verts_prompt, tableau_recap_prompt, interlocuteurs_prompt
 
 load_dotenv()
@@ -18,16 +17,24 @@ llm = ChatNVIDIA(
     api_key=os.getenv("NVIDIA_API_KEY"),
 )
 
-
 class Section(BaseModel):
     content:str = Field(
         description="The content of the section."
     )
     
 class SectionOutputState(TypedDict):
+    completed_section: str
     images: list[str]
     web_sources: list[str]
-    completed_section: str
+    
+class SectionIMGs(BaseModel):
+    images: list[str]
+    section: str
+    
+class SectionURLs(BaseModel):
+    urls: list[str]
+    section: str
+    
 
 # Graph state
 class State(TypedDict):
@@ -36,8 +43,8 @@ class State(TypedDict):
     projets_verts: SectionOutputState
     recapitulative: SectionOutputState
     interlocuteurs: SectionOutputState
-    images: List[str]
-    web_sources: List[str]
+    section_images: List[SectionIMGs]
+    section_urls: List[SectionURLs]
     fiche_client: str
 
 class SearchQuery(BaseModel):
@@ -120,12 +127,14 @@ async def interlocuteurs(state: State):
     return await generate_section(state, queries, interlocuteurs_prompt, "interlocuteurs")
 
 def aggregator(state: State):
-    combined = f"# Fiche Client pour {state['collectivite']}:\n\n"
-    combined += "## 1. Récapitulative:\n" + state["recapitulative"]["completed_sections"] + "\n\n"
-    combined += "## 2. Présentation Générale:\n" + state["presentation_generale"]["completed_sections"] + "\n\n"
-    combined += "## 3. Projets Verts:\n" + state["projets_verts"]["completed_sections"] + "\n\n"
-    combined += "## 4. Interlocuteurs:\n" + state["interlocuteurs"]["completed_sections"] + "\n\n"
-    
+    combined = (
+        f"# Fiche Client pour {state['collectivite']}:\n\n"
+        f"## 1. Récapitulative:\n{state['recapitulative']['completed_sections']}\n\n"
+        f"## 2. Présentation Générale:\n{state['presentation_generale']['completed_sections']}\n\n"
+        f"## 3. Projets Verts:\n{state['projets_verts']['completed_sections']}\n\n"
+        f"## 4. Interlocuteurs:\n{state['interlocuteurs']['completed_sections']}\n\n"
+    )
+
     sections = {
         "recapitulative": state["recapitulative"],
         "presentation_generale": state["presentation_generale"],
@@ -133,29 +142,20 @@ def aggregator(state: State):
         "interlocuteurs": state["interlocuteurs"],
     }
 
-    images_by_section = {}
-    sources_by_section = {}
-    
-    for name, section in sections.items():
-        images_by_section[name] = section.get("images", [])
-        sources_by_section[name] = section.get("web_sources", [])
-    
+    section_images = []
+    section_urls = []
 
-    all_images = list(state.get("images", []))
-    all_web_sources = list(state.get("web_sources", []))
-    
-    for section in [state["recapitulative"], state["presentation_generale"], state["projets_verts"], state["interlocuteurs"]]:
-        all_images.extend(section.get("images", []))
-        all_web_sources.extend(section.get("web_sources", []))
-    
+    for section_name, section in sections.items():
+        imgs = section.get("images", [])
+        urls = section.get("web_sources", [])
+        section_images.append(SectionIMGs(images=imgs, section=section_name))
+        section_urls.append(SectionURLs(urls=urls, section=section_name))
+
     return {
         "fiche_client": combined,
-        "images": all_images,
-        "web_sources": all_web_sources,
-        "images_by_section": images_by_section,
-        "sources_by_section": sources_by_section,
+        "section_images": section_images,
+        "section_urls": section_urls,
     }
-    
 # Build workflow
 parallel_builder = StateGraph(State)
 
@@ -187,7 +187,6 @@ parallel_workflow = parallel_builder.compile()
 # Invoke
 async def run_workflow(collectivite: str ) -> State:
     state = await parallel_workflow.ainvoke({"collectivite": collectivite})
-    print(state)
     return state
 
 if __name__ == "__main__":

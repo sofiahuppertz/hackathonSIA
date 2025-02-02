@@ -5,26 +5,11 @@ import requests
 import streamlit as st
 import streamlit.components.v1 as components
 from bs4 import BeautifulSoup
+from generate_pdf import generate_pdf
 from schemas import ClientRequest
 from utils import generate_response, validate_input
 
-
-def get_title(url):
-    try:
-        response = requests.get(url, timeout=5)
-        if response.ok:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            title_tag = soup.find('title')
-            if title_tag and title_tag.string:
-                return title_tag.string.strip()
-    except Exception:
-        pass
-    return "this page"
-
 st.set_page_config(page_title="Sfil 1", page_icon="🌃")
-
-
-
 
 
 col_chat, col_src, col_images = st.tabs(["Fiche Client 📂", "Recherche 🧪", "Images 🌇"])
@@ -56,36 +41,45 @@ with col_chat:
             )
 
         # Get the streaming text, images, and URLs from your API
-        stream, images, urls = generate_response(input_obj)
+        start_time = time.time()
+        stream, section_images, section_urls, content_for_pdf = generate_response(input_obj)
 
+        elapsed_time = time.time() - start_time
+        elapsed_seconds = round(elapsed_time, 2)  # Round to 2 decimal places
+
+        # Send message with elapsed time
+        with chat_container:
+            st.chat_message("assistant", avatar="🧑‍💻").markdown(
+                f"Votre demande de fiche client pour {prompt} a été traitée en {elapsed_seconds} secondes."
+            )
         # Append streaming response message to the chat container
         with chat_container:
             st.chat_message("assistant", avatar="🧑‍💻").write_stream(stream)
 
-        # Display images in the "Images" tab
+
         with images_container:
-            for img, url in zip(images, urls):
-                st.image(img, use_container_width=True, caption=url)
+            for sec in section_images:
+                st.subheader(f"{sec['section']}")
+                for img in sec['images']:
+                    st.image(img, width=300, caption=img)
 
-        # Display search iframes in the "Recherche" tab
         with src_container:
-            for url in urls:
-                try:
-                    response = requests.head(url, timeout=5)
-                    x_frame = response.headers.get("X-Frame-Options", "").lower()
-                except Exception:
-                    x_frame = ""
-                if x_frame in ["deny", "sameorigin"]:
-                    page_title = get_title(url)
-                    st.page_link(page=url, label=f"{page_title}", icon="🔗", use_container_width=True)
-                else:
+            for sec in section_urls:
+                st.subheader(f"{sec['section']}")
+                for url in sec['urls']:
+                    st.page_link(page=url, label=url, icon="🔗", use_container_width=True)
 
-                    iframe_html = (
-                        f'<iframe src="{url}?embed=true" '
-                        'style="height: 450px; width: 100%;" frameborder="0"></iframe>'
-                    )
-                    components.html(iframe_html, height=450)
-                    
+
+        with chat_container:
+            pdf_buffer = generate_pdf(content_for_pdf, section_images, section_urls)
+            st.download_button(
+                    label="Télécharger la fiche client en PDF",
+                    data=pdf_buffer,
+                    file_name="fiche_client.pdf",
+                    mime="application/pdf",
+                    icon="✅"
+            )
+            
 logos = [
     "https://sfil.fr/wp-content/uploads/2023/02/Sfil-Logo.png",
     "https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/e84f3d078c09d40567c795fb4649f42d",

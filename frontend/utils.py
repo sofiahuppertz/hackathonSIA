@@ -6,33 +6,6 @@ import streamlit as st
 from schemas import ClientRequest
 
 
-def mock_generate_response(input: ClientRequest):
-    # This is a mock implementation for testing the frontend.
-    content = "Ceci est un message de test généré pour le hackathon. " * 50
-    images = [
-        "https://i.ytimg.com/vi/6mOcNbLXhqk/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLASGRqrq-UeirbykA5j6HRCt9GEvg",
-        "https://i.ytimg.com/vi/6mOcNbLXhqk/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLASGRqrq-UeirbykA5j6HRCt9GEvg",
-        "https://i.ytimg.com/vi/6mOcNbLXhqk/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLASGRqrq-UeirbykA5j6HRCt9GEvg",
-        "https://i.ytimg.com/vi/6mOcNbLXhqk/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLASGRqrq-UeirbykA5j6HRCt9GEvg",
-    ]
-    urls = [
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",
-        "https://developer.mozilla.org/es/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL",    
-    ]
-
-    def stream():
-        chunk_size = 2000
-        for i in range(0, len(content), chunk_size):
-            yield content[i:i+chunk_size]
-            time.sleep(0.05)
-
-    return stream(), images, urls
 
 def generate_response(input: ClientRequest):
     try:
@@ -41,17 +14,18 @@ def generate_response(input: ClientRequest):
             json=input.to_json()
         )
         data = response.json()
-        images = data.get("images", [])
-        urls = data.get("urls", [])
+        
         content = data.get("content", "")
+        section_images = data.get("images", [])
+        section_urls = data.get("urls", [])
 
         def stream():
             chunk_size = 25
             for i in range(0, len(content), chunk_size):
                 yield content[i:i+chunk_size]
                 time.sleep(0.05)
-
-        return stream(), images, urls
+        
+        return stream(), section_images, section_urls, content
     except requests.exceptions.RequestException as e:
         st.error(f"Error communicating with the backend: {e}")
         return iter([]), [], []
