@@ -142,5 +142,6 @@ project-root/
 - **Efficient Data Retrieval:** TavilySearch provides quick and relevant data fetching.
 - **Interactive UI:** Streamlit delivers a user-friendly interface for seamless interaction.
 - **Scalable Deployment:** Future-proofed with plans for AWS integration to ensure scalability.
-
 ---
+## Link Présentation + Demo 🍿
+
