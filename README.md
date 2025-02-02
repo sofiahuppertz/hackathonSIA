@@ -68,8 +68,9 @@ Here are the section titles with guidelines to gather similar info from other lo
 	**☁️ AWS (Amazon Web Services)
 	**Services to Consider: AWS Lambda, EC2, ECS
  
-# 📋 Project Structure Overview
+## Project Structure
 
+```plaintext
 project-root/
 ├── backend/
 │   ├── app.py
@@ -79,12 +80,12 @@ project-root/
 │       ├── prompts.py
 │       └── web_search_agent.py
 └── frontend/
-├── DejaVuSans.ttf
-├── generate_pdf.py
-├── main.py
-├── schemas.py
-└── utils.py
-
+    ├── DejaVuSans.ttf
+    ├── generate_pdf.py
+    ├── main.py
+    ├── schemas.py
+    └── utils.py
+```
 
 ✅ Key Features
 	**Multi-Agent RAG Workflow: Enhanced interactivity and functionality through Langchain’s multi-agent capabilities.
