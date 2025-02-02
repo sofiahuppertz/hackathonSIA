@@ -70,17 +70,15 @@ Here are the section titles with guidelines to gather similar info from other lo
  
 # 📋 Project Structure Overview
 
-📁 project-root/
-|
-backend/
-├── app.py
-├── schemas.py
-└── srcs/
-    ├── client_sheet_generator_agent.py
-    ├── prompts.py
-    └── web_search_agent.py
-|
-frontend/
+project-root/
+├── backend/
+│   ├── app.py
+│   ├── schemas.py
+│   └── srcs/
+│       ├── client_sheet_generator_agent.py
+│       ├── prompts.py
+│       └── web_search_agent.py
+└── frontend/
 ├── DejaVuSans.ttf
 ├── generate_pdf.py
 ├── main.py
