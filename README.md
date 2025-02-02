@@ -1,105 +1,91 @@
-# hackathonSIA
+# H-GenAI 2025: SIA Partners, SFIL, AWS, Nvidia, MistralAI 🚀
 
-Backend Setup
-⚠️ Add API keys to .env file inside backend/
+## Setup
+⚠️ Use env_template to add API keys in .env file inside backend/
 
-pip install -r backend/requirements.txt
-
+pip install -r requirements.txt
+cd backend/
 uvicorn app:app --reload
-
-Frontend Setup
-pip install -r frontend/requirements.txt
-
+cd frontend/
 streamlit run main.py
 
-# Fiche client
-Voici les titres des sections avec des lignes directrices pour rechercher les mêmes informations auprès d’autres collectivités :
+# Bussiness Requirement
+## Client Profile
 
-1. Présentation Générale
-	•	Informations démographiques : population, superficie, densité.
-	•	Historique des réorganisations territoriales (création de syndicats, communautés de communes, métropoles).
-	•	Caractéristiques clés de la collectivité (rôle, spécificités économiques, administratives).
+Here are the section titles with guidelines to gather similar info from other local authorities:
 
-2. Interlocuteurs
-	•	Liste des dirigeants principaux (Maire, Président de la Métropole/Communauté, Directeurs).
-	•	Parcours et formations des élus et responsables.
-	•	Fonctions et responsabilités au sein de la collectivité.
+1. **General Overview** 🏙️  
+   - Demographics: population, area, density.  
+   - History of territorial reorganizations (e.g., districts, communities, metropolises).  
+   - Key characteristics: role, economic & administrative specifics.
 
-3. Budget Primitif 2024
-	•	Montant total du budget adopté.
-	•	Répartition entre dépenses de fonctionnement et d’investissement.
-	•	Principaux axes de financement et priorités budgétaires.
+2. **Key Contacts** 📞  
+   - Main leaders (Mayor, Metropolitan/Community President, Directors).  
+   - Background & education of officials.  
+   - Roles & responsibilities.
 
-4. Situation Financière (Exercice 2023)
-	•	Endettement et ratios financiers (capacité de désendettement, taux d’endettement).
-	•	Épargne brute et autofinancement.
-	•	Comparaison avec des moyennes nationales ou régionales.
+3. **2024 Budget** 💰  
+   - Total approved budget.  
+   - Breakdown: operating vs. capital expenses.  
+   - Funding priorities.
 
-5. Projets Verts
-	•	Investissements en énergies renouvelables (solaire, éolien, biomasse).
-	•	Mobilité durable et infrastructures (pistes cyclables, transports propres).
-	•	Urbanisme durable et efficacité énergétique (rénovation, éclairage public, gestion de l’eau).
+4. **Financial Status (2023)** 📊  
+   - Debt and financial ratios (debt capacity, debt ratio).  
+   - Gross savings and self-financing.  
+   - Comparisons with national/regional averages.
 
-6. Projets Sociaux
-	•	Équipements éducatifs (écoles, collèges, lycées, formations professionnelles).
-	•	Infrastructures sportives et culturelles.
-	•	Politiques d’inclusion sociale et de renouvellement urbain.
+5. **Green Projects** 🌱  
+   - Investments in renewables (solar, wind, biomass).  
+   - Sustainable mobility & infrastructure (bike lanes, clean transport).  
+   - Urban sustainability & energy efficiency (renovation, public lighting, water management).
 
-7. Comparatif du Client avec des Collectivités Comparables
-	•	Comparaison des principaux indicateurs financiers et budgétaires avec des collectivités de taille similaire.
-	•	Analyse des investissements similaires dans d’autres territoires.
-	•	Comparaison des initiatives en matière de transition écologique et sociale.
+6. **Social Projects** 🤝  
+   - Educational facilities (schools, colleges, vocational training).  
+   - Sports and cultural infrastructure.  
+   - Social inclusion and urban renewal policies.
 
-Ces lignes directrices permettent d’extraire les mêmes types d’informations pour d’autres collectivités.
+7. **Peer Comparison** 🔍  
+   - Compare key financial and budget indicators with similar authorities.  
+   - Analyze similar investments in other regions.  
+   - Evaluate eco-friendly and social transition initiatives.
+
 
 # 🚀 Project Technology Stack
 
 ## 🧠 Language Models & AI Frameworks
 	•	🔗 nv-mistralai/mistral-nemo-12b-instruct (API)
-	•	Leverages NVIDIA’s Mistral model for advanced natural language understanding and generation.
-	•	🤖 NVIDIA NeMo (NIM)
-	•	A versatile toolkit for building and deploying conversational AI applications, seamlessly integrating with NVIDIA’s ecosystem.
-
+ 	•	Nvidia NIM
 ## 🔄 Workflow & Orchestration
 	•	🔗 Langchain
-	•	Manages complex language model workflows and integrates multiple data sources.
-	•	Facilitates multi-agent interactions to enhance application functionality.
-
 ## 🔍 Search & Retrieval
 	•	🔗 TavilySearch
-	•	A web-based search solution tailored for RAG applications.
-	•	Supports efficient retrieval of relevant documents and data based on user queries.
-
-
 # 🌐 Frontend & User Interface
 	•	🎨 Streamlit
-	•	Rapidly builds interactive web applications with minimal overhead.
-	•	Ideal for creating dashboards and prototypes quickly, perfect for hackathons.
-
 # 🖥️ Backend & API Development
 	•	⚡ FastAPI
-	•	A high-performance web framework for building APIs.
-	•	Facilitates seamless communication between the frontend and backend.
-	•	Supports asynchronous operations for enhanced performance.
 
-# ☁️ Deployment & Infrastructure
+# ☁️ Deployment & Infrastructure (TODO)
 	•	☁️ AWS (Amazon Web Services)
-	•	Scalable and reliable infrastructure for deploying applications.
 	•	Services to Consider: AWS Lambda, EC2, ECS
-	•	Note: For quicker setups, consider alternatives like Streamlit Sharing or Heroku during the hackathon.
-
-
-# 🛠️ Additional Features
-	•	🧩 Vector Embeddings
-	• Embedded links (for sources)
-
-📋 Project Structure Overview
+ 
+# 📋 Project Structure Overview
 
 📁 project-root/
-├── frontend/
-│   └── main.py
-├── backend/
-│   └── app.py
+|
+backend/
+├── app.py
+├── schemas.py
+└── srcs/
+    ├── client_sheet_generator_agent.py
+    ├── prompts.py
+    └── web_search_agent.py
+|
+frontend/
+├── DejaVuSans.ttf
+├── generate_pdf.py
+├── main.py
+├── schemas.py
+└── utils.py
 
 
 ✅ Key Features
@@ -108,9 +94,4 @@ Ces lignes directrices permettent d’extraire les mêmes types d’informations
 	•	Interactive UI: Streamlit provides a user-friendly interface for seamless interaction.
 	•	Scalable Deployment: AWS ensures your application can scale as needed.
 
-🛠️ Development Tips for Hackathons
-	1.	Prioritize Core Functionality: Focus first on establishing a working RAG pipeline before adding complex features.
-	2.	Simplify Deployment: Use platforms with quick setup times like Streamlit Sharing or Heroku initially.
-	3.	Regular Integration Testing: Continuously test interactions between frontend and backend to identify issues early.
-	4.	Leverage Documentation: Utilize the extensive resources and community support for Langchain, FastAPI, and NeMo.
-	5.	Manage Scope Effectively: Aim for a functional prototype with essential features to ensure completion within the hackathon timeframe.
+
