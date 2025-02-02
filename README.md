@@ -1,4 +1,10 @@
 # H-GenAI 2025: SIA Partners, SFIL, AWS, Nvidia, MistralAI 🚀
+
+## Présentation 📺
+
+[The presentation deck](https://www.figma.com/deck/IcOXBsA3XaLusGuzAkZ9M9/Untitled?node-id=1-97&t=EYmtcmETtT7OwOMf-1)
+
+
 ---
 
 ## Table of Contents
