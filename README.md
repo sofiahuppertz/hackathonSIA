@@ -92,4 +92,3 @@ project-root/
 	**Interactive UI: Streamlit provides a user-friendly interface for seamless interaction.
 	**Scalable Deployment: AWS ensures your application can scale as needed.
 
-
