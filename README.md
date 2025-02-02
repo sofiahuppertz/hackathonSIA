@@ -53,20 +53,20 @@ Here are the section titles with guidelines to gather similar info from other lo
 # 🚀 Project Technology Stack
 
 ## 🧠 Language Models & AI Frameworks
-	•	🔗 nv-mistralai/mistral-nemo-12b-instruct (API)
- 	•	Nvidia NIM
+	**🔗 nv-mistralai/mistral-nemo-12b-instruct (API)
+ 	**Nvidia NIM
 ## 🔄 Workflow & Orchestration
-	•	🔗 Langchain
+	**🔗 Langchain
 ## 🔍 Search & Retrieval
-	•	🔗 TavilySearch
+	**🔗 TavilySearch
 # 🌐 Frontend & User Interface
-	•	🎨 Streamlit
+	**🎨 Streamlit
 # 🖥️ Backend & API Development
-	•	⚡ FastAPI
+	**⚡ FastAPI
 
 # ☁️ Deployment & Infrastructure (TODO)
-	•	☁️ AWS (Amazon Web Services)
-	•	Services to Consider: AWS Lambda, EC2, ECS
+	**☁️ AWS (Amazon Web Services)
+	**Services to Consider: AWS Lambda, EC2, ECS
  
 # 📋 Project Structure Overview
 
@@ -87,9 +87,9 @@ project-root/
 
 
 ✅ Key Features
-	•	Multi-Agent RAG Workflow: Enhanced interactivity and functionality through Langchain’s multi-agent capabilities.
-	•	Efficient Data Retrieval: TavilySearch ensures quick and relevant data fetching.
-	•	Interactive UI: Streamlit provides a user-friendly interface for seamless interaction.
-	•	Scalable Deployment: AWS ensures your application can scale as needed.
+	**Multi-Agent RAG Workflow: Enhanced interactivity and functionality through Langchain’s multi-agent capabilities.
+	**Efficient Data Retrieval: TavilySearch ensures quick and relevant data fetching.
+	**Interactive UI: Streamlit provides a user-friendly interface for seamless interaction.
+	**Scalable Deployment: AWS ensures your application can scale as needed.
 
 
