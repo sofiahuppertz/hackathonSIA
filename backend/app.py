@@ -1,3 +1,5 @@
+import sys
+import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +9,8 @@ import httpx
 import urllib.parse
 
 load_dotenv()
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 app = FastAPI()
 

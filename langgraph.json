@@ -1,0 +1,8 @@
+{
+  "app": "backend.srcs.client_sheet_generator_agent:parallel_workflow",
+  "graphs": {
+    "client_sheet": "backend.srcs.client_sheet_generator_agent:parallel_workflow",
+    "web_search": "backend.srcs.web_search:section_builder_graph"
+  },
+  "env": ".env"
+}

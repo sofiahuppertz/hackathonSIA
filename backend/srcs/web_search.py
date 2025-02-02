@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 from tavily import AsyncTavilyClient, TavilyClient
 from typing_extensions import TypedDict
 
+from langgraph.checkpoint.sqlite import SqliteSaver
+
 load_dotenv()
 
 tavily_client = TavilyClient()
@@ -181,6 +183,7 @@ def write_section(state: SectionState):
         "- Le texte est entièrement en Francais. " 
         "- Assurer clarté et concision. "
         "- Vérifier l'exactitude des données (chiffres et faits). "
+        "- Ne cite aucune source. "
         # "- Vous utilisez toujours les informations les plus récentes et les plus pertinentes. Rien qui date de plus de 60 ans."
     )
 
@@ -206,10 +209,13 @@ def write_section(state: SectionState):
 
     
 section_builder = StateGraph(SectionState, output=SectionOutputState)
+
 section_builder.add_node("search_web", search_web)
 section_builder.add_node("write_section", write_section)
 section_builder.add_edge(START, "search_web")
 section_builder.add_edge("search_web", "write_section")
 section_builder.add_edge("write_section", END)
-section_builder_graph = section_builder.compile()
+
+checkpointer = SqliteSaver.from_conn_string(":memory:")
+section_builder_graph = section_builder.compile(checkpointer=checkpointer)
 

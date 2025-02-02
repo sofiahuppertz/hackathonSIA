@@ -83,3 +83,5 @@ wcwidth==0.2.13
 yarl==1.18.3
 zstandard==0.23.0
 streamlit
+langgraph-studio>=0.0.8
+langgraph-cli[inmem]==0.1.55

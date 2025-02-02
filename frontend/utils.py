@@ -4,6 +4,29 @@ from typing import Iterator
 import requests
 import streamlit as st
 from schemas import ClientRequest
+from langgraph.schema import Checkpoint
+
+def render_checkpoint(checkpoint: Checkpoint):
+    nodes = [
+        {
+            "id": node_name,
+            "label": f"{node_name}\n({checkpoint['metadata']['source']})",
+            "status": checkpoint["status"]
+        }
+        for node_name in checkpoint["nodes"]
+    ]
+    
+    edges = [
+        {"from": edge[0], "to": edge[1]}
+        for edge in checkpoint["edges"]
+    ]
+    
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "states": checkpoint["channel_values"]
+    }
+
 
 
 def mock_generate_response(input: ClientRequest):

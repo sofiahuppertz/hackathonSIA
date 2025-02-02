@@ -8,8 +8,17 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 from typing import List
 from typing_extensions import TypedDict
-from .web_search import section_builder_graph
-from .prompts import presentation_generale_prompt, projets_verts_prompt, tableau_recap_prompt, interlocuteurs_prompt
+
+from web_search import section_builder_graph
+from prompts import presentation_generale_prompt, projets_verts_prompt, tableau_recap_prompt, interlocuteurs_prompt
+
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.prebuilt import create_concurrent_workflow
+
+from langgraph.graph.message import add_messages
+from typing import Annotated, TypedDict
+
+
 
 load_dotenv()
 
@@ -32,13 +41,13 @@ class SectionOutputState(TypedDict):
 # Graph state
 class State(TypedDict):
     collectivite: str
-    presentation_generale: SectionOutputState
-    projets_verts: SectionOutputState
-    recapitulative: SectionOutputState
-    interlocuteurs: SectionOutputState
+    current_section: str  # Track active section
+    sections: dict  # Store all section states
     images: List[str]
     web_sources: List[str]
     fiche_client: str
+    messages: Annotated[list, add_messages]
+
 
 class SearchQuery(BaseModel):
     search_query: str = Field(
@@ -75,7 +84,10 @@ async def generate_section(
         "web_sources": [],
         "completed_sections": [],
     }
-    result = await section_builder_graph.ainvoke(initial_state)
+    result = await section_builder_graph.ainvoke(
+        initial_state,
+        config={"configurable": {"thread_id": "web_search_123"}}
+    )
     return {result_key: result}
     
 async def recapitulative(state: State):
@@ -159,17 +171,28 @@ def aggregator(state: State):
 # Build workflow
 parallel_builder = StateGraph(State)
 
+
 # Define a list of tuples with node names and their corresponding functions
 sections = [
-    ("call_section_1", recapitulative),
-    ("call_section_2", presentation_generale),
-    ("call_section_3", projets_verts),
-    ("call_section_4", interlocuteurs),
+    ("recapitulative", recapitulative),
+    ("presentation_generale", presentation_generale),
+    ("projets_verts", projets_verts),
+    ("interlocuteurs", interlocuteurs),
     # ("call_section_3", budget_primitif_2024),
     # ("call_section_4", situation_financiere),
     # ("call_section_6", projets_sociaux),
     # ("call_section_7", comparatif_collectivites),
 ]
+
+checkpointer = SqliteSaver.from_conn_string(":memory:")  
+
+
+parallel_builder = create_concurrent_workflow(
+    "parallel_sections",
+    sections,
+    aggregator,
+    checkpointer=checkpointer
+)
 
 # Loop to add nodes and connect them from START and to aggregator
 for name, func in sections:
@@ -181,13 +204,22 @@ for name, func in sections:
 parallel_builder.add_node("aggregator", aggregator)
 parallel_builder.add_edge("aggregator", END)
 
-# Compile the workflow
-parallel_workflow = parallel_builder.compile()
+# Add to your workflow compilation
+parallel_workflow = parallel_builder.compile(
+    checkpointer=checkpointer,
+    visualize=True,  # Enable built-in visualization
+    visualization_options={
+        "format": "png",
+        "filename": "workflow_graph"
+    }
+)
 
 # Invoke
 async def run_workflow(collectivite: str ) -> State:
-    state = await parallel_workflow.ainvoke({"collectivite": collectivite})
-    print(state)
+    state = await parallel_workflow.ainvoke(
+        {"collectivite": collectivite},
+        config={"configurable": {"thread_id": "client_sheet_456"}}
+    )
     return state
 
 if __name__ == "__main__":
