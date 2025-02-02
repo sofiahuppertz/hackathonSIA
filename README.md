@@ -1,73 +1,115 @@
 # H-GenAI 2025: SIA Partners, SFIL, AWS, Nvidia, MistralAI 🚀
+---
+
+## Table of Contents
+
+- [Setup](#setup)
+- [Installation & Running the Project](#installation--running-the-project)
+- [Business Requirements](#business-requirements)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Key Features](#key-features)
+
+---
 
 ## Setup
-⚠️ Use env_template to add API keys in .env file inside backend/
 
+Before starting, add your API keys using the `env_template` file. Copy it to `.env` and place it in the `backend/` directory.
+
+---
+
+## Installation & Running the Project
+
+### 1. Install Dependencies
+
+Install all required Python packages with:
+
+```bash
 pip install -r requirements.txt
+```
+
+### 2. Run the Backend
+
+Navigate to the backend folder and start the FastAPI server using Uvicorn:
+
+```bash
 cd backend/
 uvicorn app:app --reload
-cd frontend/
+```
+
+### 3. Run the Frontend
+
+Switch to the frontend directory and launch the Streamlit application:
+
+```bash
+cd ../frontend/
 streamlit run main.py
+```
 
-# Bussiness Requirement
-## Client Profile
+---
 
-Here are the section titles with guidelines to gather similar info from other local authorities:
+## Business Requirements
+
+The project is designed to generate comprehensive client profiles for local authorities. The sections to be covered include:
 
 1. **General Overview** 🏙️  
-   - Demographics: population, area, density.  
-   - History of territorial reorganizations (e.g., districts, communities, metropolises).  
-   - Key characteristics: role, economic & administrative specifics.
+   - **Demographics:** Population, area, density.  
+   - **History:** Territorial reorganizations (e.g., districts, communities, metropolises).  
+   - **Key Characteristics:** Role, economic, and administrative specifics.
 
 2. **Key Contacts** 📞  
-   - Main leaders (Mayor, Metropolitan/Community President, Directors).  
-   - Background & education of officials.  
-   - Roles & responsibilities.
+   - **Officials:** Main leaders (Mayor, Metropolitan/Community President, Directors).  
+   - **Background:** Education and professional experience.  
+   - **Roles:** Responsibilities and governance structure.
 
 3. **2024 Budget** 💰  
-   - Total approved budget.  
-   - Breakdown: operating vs. capital expenses.  
-   - Funding priorities.
+   - **Overview:** Total approved budget.  
+   - **Breakdown:** Operating vs. capital expenses.  
+   - **Priorities:** Funding priorities and allocations.
 
-4. **Financial Status (2023)** 📊  
-   - Debt and financial ratios (debt capacity, debt ratio).  
-   - Gross savings and self-financing.  
-   - Comparisons with national/regional averages.
+4. **Financial Status** 📊  
+   - **Indicators:** Debt, financial ratios (debt capacity, debt ratio).  
+   - **Savings:** Gross savings and self-financing metrics.  
+   - **Benchmarking:** Comparison with national/regional averages.
 
 5. **Green Projects** 🌱  
-   - Investments in renewables (solar, wind, biomass).  
-   - Sustainable mobility & infrastructure (bike lanes, clean transport).  
-   - Urban sustainability & energy efficiency (renovation, public lighting, water management).
+   - **Investments:** Renewables (solar, wind, biomass).  
+   - **Infrastructure:** Sustainable mobility (bike lanes, clean transport).  
+   - **Urban Sustainability:** Energy efficiency initiatives (renovation, public lighting, water management).
 
 6. **Social Projects** 🤝  
-   - Educational facilities (schools, colleges, vocational training).  
-   - Sports and cultural infrastructure.  
-   - Social inclusion and urban renewal policies.
+   - **Education:** Schools, colleges, vocational training.  
+   - **Culture & Sports:** Facilities and infrastructure.  
+   - **Inclusion:** Social policies and urban renewal strategies.
 
 7. **Peer Comparison** 🔍  
-   - Compare key financial and budget indicators with similar authorities.  
-   - Analyze similar investments in other regions.  
-   - Evaluate eco-friendly and social transition initiatives.
+   - **Financial Benchmarks:** Compare key financial and budget indicators with similar authorities.  
+   - **Investments:** Analysis of similar eco-friendly and social transition projects in other regions.
 
+---
 
-# 🚀 Project Technology Stack
+## Technology Stack 🚀💻
 
-## 🧠 Language Models & AI Frameworks
-	**🔗 nv-mistralai/mistral-nemo-12b-instruct (API)
- 	**Nvidia NIM
-## 🔄 Workflow & Orchestration
-	**🔗 Langchain
-## 🔍 Search & Retrieval
-	**🔗 TavilySearch
-# 🌐 Frontend & User Interface
-	**🎨 Streamlit
-# 🖥️ Backend & API Development
-	**⚡ FastAPI
+### Language Models & AI Frameworks 🤖
+- **nv-mistralai/mistral-nemo-12b-instruct (API)**
+- **Nvidia NIM**
 
-# ☁️ Deployment & Infrastructure (TODO)
-	**☁️ AWS (Amazon Web Services)
-	**Services to Consider: AWS Lambda, EC2, ECS
- 
+### Workflow & Orchestration 🔄
+- **🦜⛓️‍💥Langchain** for multi-agent workflow orchestration
+
+### Search & Retrieval 🔍
+- **TavilySearch** for efficient data fetching
+
+### Frontend & User Interface 🎨
+- **Streamlit** for an interactive UI
+
+### Backend & API Development ⚡
+- **FastAPI** for building a scalable backend
+
+### Deployment & Infrastructure (Planned) ☁️
+- **AWS** (Amazon Web Services) – Consider using services such as AWS Lambda, EC2, or ECS for deployment
+---
+
 ## Project Structure
 
 ```plaintext
@@ -87,9 +129,18 @@ project-root/
     └── utils.py
 ```
 
-✅ Key Features
-	**Multi-Agent RAG Workflow: Enhanced interactivity and functionality through Langchain’s multi-agent capabilities.
-	**Efficient Data Retrieval: TavilySearch ensures quick and relevant data fetching.
-	**Interactive UI: Streamlit provides a user-friendly interface for seamless interaction.
-	**Scalable Deployment: AWS ensures your application can scale as needed.
+<div style="display: flex; justify-content: space-between; gap: 20px;">
+  <img src="./media/structure.png" alt="Project Structure" style="width: 45%; max-width: 200px;" />
+  <img src="./media/nodes.png" alt="The nodes" style="max-width: 400px;" />
+</div>
 
+---
+
+## Key Features
+
+- **Multi-Agent RAG Workflow:** Enhanced interactivity and functionality via Langchain’s multi-agent capabilities.
+- **Efficient Data Retrieval:** TavilySearch provides quick and relevant data fetching.
+- **Interactive UI:** Streamlit delivers a user-friendly interface for seamless interaction.
+- **Scalable Deployment:** Future-proofed with plans for AWS integration to ensure scalability.
+
+---
